@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <style>
+            ul {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+            }
+        </style>
+    </head>
+    <body>
+        <?php
+        $dsn = 'mysql:dbname=tb221239db;host=localhost';
+	    $user = 'tb-221239';
+	    $password = '3yY7cnQYbA';
+	    $pdo = new PDO($dsn, $user, $password, array(PDO::ATTR_ERRMODE => PDO::ERRMODE_WARNING));
+        /*
+        $sql = "DROP TABLE db;";
+        $stmt = $pdo->query($sql);
+        */
+        $sql = "CREATE TABLE IF NOT EXISTS db"
+	            ." ("
+	            . "id INT AUTO_INCREMENT PRIMARY KEY,"
+	            . "name char(32),"
+	            . "comment TEXT,"
+	            . "date datetime,"
+	            . "password char(32)"
+	            .");";
+	    $stmt = $pdo->query($sql);
+	    
+	    $edit_num = $_POST["edit_num"];
+	    $pass_edit= $_POST["password_edit"];
+	    $flag = 0;
+	    
+	    if (!empty($edit_num)){
+	        $sql = "SELECT * FROM db
+	                WHERE id = '$edit_num';";
+	        $result = $pdo->query($sql);
+	        foreach ($result as $value){
+	            if ($value[4] == $pass_edit){
+	                $edit_number = $value[0];
+	                $edit_name = $value[1];
+	                $edit_comment = $value[2];
+	                $edit_password = $value[4];
+	            }else{
+	                $flag = 1;
+	            }
+	        }
+	    }
+
+        ?>
+        <form action="" method="post">
+            <ul>
+                <!--<li>はスタイル設定を容易にするため-->
+                <!--<id>は文書全体で一意である必要
+                リンクする際に要素を識別するため
+                <label>のforの値として使用-->
+                <li>
+                    <!--hiddenにすることで操作側からは見えなくするtype="hidden"-->
+                    <input
+                    id="name"
+                    name="usr_num"
+                    type="hidden"
+                    value=<?php echo $edit_number;?>
+                    >
+                </li>
+                <li>
+                    <label for="name">Name:</label>
+                    <input
+                    type="text"
+                    id="name"
+                    name="usr_name"
+                    value=<?php echo $edit_name;?>
+                    >
+                </li>
+                <li>
+                    <label for="name">Comment:</label>
+                    <input
+                    type="text"
+                    id="comment"
+                    name="usr_comment"
+                    value=<?php echo $edit_comment;?>
+                    >
+                </li>
+                <li>
+                    <label for="password">Password:</label>
+                    <input
+                    type="text"
+                    id="password"
+                    name="password"
+                    value=<?php echo $edit_password;?>
+                    >
+                </li>
+                <li class="button">
+                    <button type="submit">submit</button>
+                </li>
+            </ul>
+        </form>
+        <form action="" method="post">
+            <ul>
+                 <li>
+                    <label for="edit">Edit:</label>
+                    <input type="text" id="edit" name="edit_num">
+                </li>
+                <li>
+                    <label for="password">Password:</label>
+                    <input type="text" id="password" name="password_edit">
+                </li>
+                <li class="button">
+                    <button type="submit">submit</button>
+                </li>
+            </ul>
+        <form action="" method="post">
+            <ul>
+                 <li>
+                    <label for="delete">Delete:</label>
+                    <input type="text" id="delete" name="delete_num">
+                </li>
+                <li>
+                    <label for="password">Password:</label>
+                    <input type="text" id="password" name="password_del">
+                </li>
+                <li class="button">
+                    <button type="submit">submit</button>
+                </li>
+            </ul>
+        </form>
+        <?php
+        
+        $file_name = "3-5.txt";
+        
+        $symbol = "<>";
+        
+        $usr_num = $_POST["usr_num"];
+        $usr_name = $_POST["usr_name"];
+        $usr_comment = $_POST["usr_comment"];
+        $usr_password = $_POST["password"];
+        $del_password = $_POST["password_del"];
+        $date = date("Y/m/d H:i:s");
+        $del_num = $_POST["delete_num"];
+
+        $number = 1;
+        $flag = 0;
+        
+        //投稿書き込み
+        if (!empty($usr_name) && !empty($usr_comment) && !empty($usr_password)){
+            if (empty($usr_num)){
+                //新規投稿
+                $sql = "SELECT * FROM db
+	                WHERE id = (SELECT MAX(id) FROM db);";
+                $result = $pdo->query($sql);
+                if ($result){
+                    foreach ($result as $value){
+                        $number = $value[0] + 1;
+                    }
+                }else{
+                    $number = 1;
+                }
+                $sql = "INSERT INTO db 
+                        VALUES ('$number','$usr_name','$usr_comment','$date','$usr_password');";
+                $stmt = $pdo->query($sql);
+            }else{
+                $number = $usr_num;
+                $sql = "UPDATE db 
+                        SET id = '$number', name = '$usr_name', comment = '$usr_comment', date = '$date', password ='$usr_password'
+                        WHERE id = '$usr_num';";
+                $stmt = $pdo->query($sql);
+                
+            }
+        }
+        
+        //投稿削除
+        if (!empty($del_num)){
+            $sql = "SELECT password FROM db
+                    WHERE id = '$del_num';";
+            $result = $pdo->query($sql);
+            foreach ($result as $value){
+                $pass = $value[0];
+            }
+            if ($del_password == $pass){
+                $sql = "DELETE FROM db
+                    WHERE id = '$del_num';";
+                $stmt = $pdo->query($sql);
+            }else{
+                $flag = 1;
+            }
+        }
+        
+        
+        if ($flag == 1){
+            echo "パスワードが違います"."<br>";
+        }
+        
+        echo "-------------------------------------"."<br>";
+        
+        //投稿表示
+        $sql = "SELECT * FROM db;";
+        $result = $pdo->query($sql);
+        foreach ($result as $value){
+            echo $value[0]."<br>";
+            echo $value[1]."<br>";
+            echo $value[2]."<br>";
+            echo $value[3]."<br>";
+            echo $value[4]."<br>";
+        }
+        
+        ?>
+    </body>
+</html>
