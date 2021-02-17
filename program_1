@@ -12,9 +12,9 @@
     </head>
     <body>
         <?php
-        $dsn = 'mysql:dbname=tb221239db;host=localhost';
-	    $user = 'tb-221239';
-	    $password = '3yY7cnQYbA';
+        $dsn = 'mysql:dbname=;host=localhost';
+	    $user = '';
+	    $password = '';
 	    $pdo = new PDO($dsn, $user, $password, array(PDO::ATTR_ERRMODE => PDO::ERRMODE_WARNING));
         /*
         $sql = "DROP TABLE db;";
